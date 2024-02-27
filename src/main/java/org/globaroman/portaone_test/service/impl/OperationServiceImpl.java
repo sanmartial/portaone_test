@@ -2,7 +2,7 @@ package org.globaroman.portaone_test.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.globaroman.portaone_test.dto.ResponseOperationDto;
-import org.globaroman.portaone_test.service.IOService;
+import org.globaroman.portaone_test.service.InputService;
 import org.globaroman.portaone_test.service.OperationService;
 import org.springframework.stereotype.Service;
 import java.io.FileNotFoundException;
@@ -13,52 +13,41 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OperationServiceImpl implements OperationService {
 
-    private final IOService ioService;
-    private final String PATH_FILE = "/app/file.txt";
+    private final InputService inputService;
 
     @Override
     public ResponseOperationDto getResult() {
+        String PATH_FILE = "10m.txt";
+        return getResponseOperationDto(PATH_FILE);
+    }
 
+    @Override
+    public ResponseOperationDto getResult(String path) {
+        return getResponseOperationDto(path);
+    }
+
+    private ResponseOperationDto getResponseOperationDto(String path) {
         ResponseOperationDto responseDto = new ResponseOperationDto();
         try {
-            List<Long> list = ioService.uploadValues(PATH_FILE);
+            List<Long> list = inputService.uploadValues(path);
             if (list.isEmpty()) {
                 return responseDto;
             }
-            responseDto.setMaxValue(maxValue(list));
-            responseDto.setMinValue(minValue(list));
-            responseDto.setAverageValue(averageValue(list));
-            responseDto.setLargeSeqIncrease(largeSequenceValueIncreases(list));
-            responseDto.setLargeSeqDecrease(largeSequenceValueDecrease(list));
-            responseDto.setMediana(medianaValue(list));
+            responseDto = getResponseDtoWithValues(list);
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
-
-
         return responseDto;
     }
 
-
-    public ResponseOperationDto getResult(String path) {
-
+    private ResponseOperationDto getResponseDtoWithValues(List<Long> list) {
         ResponseOperationDto responseDto = new ResponseOperationDto();
-        try {
-            List<Long> list = ioService.uploadValues(path);
-            if (list.isEmpty()) {
-                return responseDto;
-            }
-            responseDto.setMaxValue(maxValue(list));
-            responseDto.setMinValue(minValue(list));
-            responseDto.setAverageValue(averageValue(list));
-            responseDto.setLargeSeqIncrease(largeSequenceValueIncreases(list));
-            responseDto.setLargeSeqDecrease(largeSequenceValueDecrease(list));
-            responseDto.setMediana(medianaValue(list));
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-
-
+        responseDto.setMaxValue(maxValue(list));
+        responseDto.setMinValue(minValue(list));
+        responseDto.setAverageValue(averageValue(list));
+        responseDto.setLargeSeqIncrease(largeSequenceValueIncreases(list));
+        responseDto.setLargeSeqDecrease(largeSequenceValueDecrease(list));
+        responseDto.setMediana(medianaValue(list));
         return responseDto;
     }
 
@@ -72,8 +61,7 @@ public class OperationServiceImpl implements OperationService {
         return max;
     }
 
-
-    public Long minValue(List<Long> list) {
+    private Long minValue(List<Long> list) {
         Long min = list.get(0);
         for (Long value : list) {
             if (value < min) {
@@ -83,8 +71,7 @@ public class OperationServiceImpl implements OperationService {
         return min;
     }
 
-
-    public Double medianaValue(List<Long> list) {
+    private Double medianaValue(List<Long> list) {
         Collections.sort(list);
         int size = list.size();
 
@@ -97,8 +84,7 @@ public class OperationServiceImpl implements OperationService {
         }
     }
 
-
-    public Double averageValue(List<Long> list) {
+    private Double averageValue(List<Long> list) {
         double sum = 0L;
         double count = 0L;
 
@@ -109,14 +95,12 @@ public class OperationServiceImpl implements OperationService {
         return sum / count;
     }
 
-
-    public Long largeSequenceValueIncreases(List<Long> list) {
-
-        Long prev = list.get(0);
-        Long max = 1L;
-        Long count = 1L;
+    private Long largeSequenceValueIncreases(List<Long> list) {
+        long prev = list.get(0);
+        long max = 1L;
+        long count = 1L;
         for (Long value : list) {
-            Long current = value;
+            long current = value;
             if (current > prev) {
                 count++;
                 max = Math.max(max, count);
@@ -128,13 +112,12 @@ public class OperationServiceImpl implements OperationService {
         return max;
     }
 
-
-    public Long largeSequenceValueDecrease(List<Long> list) {
-        Long prev = list.get(0);
-        Long max = 1L;
-        Long count = 1L;
+    private Long largeSequenceValueDecrease(List<Long> list) {
+        long prev = list.get(0);
+        long max = 1L;
+        long count = 1L;
         for (Long value : list) {
-            Long current = value;
+            long current = value;
             if (current < prev) {
                 count++;
                 max = Math.max(max, count);
